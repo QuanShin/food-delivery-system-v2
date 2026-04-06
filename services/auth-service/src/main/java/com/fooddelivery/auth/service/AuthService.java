@@ -6,6 +6,7 @@ import com.fooddelivery.auth.dto.RegisterRequest;
 import com.fooddelivery.auth.entity.Role;
 import com.fooddelivery.auth.entity.User;
 import com.fooddelivery.auth.repository.UserRepository;
+import com.fooddelivery.auth.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,10 +17,14 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder,
+                       JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -41,11 +46,14 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
+        String token = jwtService.generateToken(savedUser.getEmail(), savedUser.getRole().name());
+
         return new AuthResponse(
                 "User registered successfully",
                 savedUser.getUsername(),
                 savedUser.getEmail(),
-                savedUser.getRole().name()
+                savedUser.getRole().name(),
+                token
         );
     }
 
@@ -57,11 +65,14 @@ public class AuthService {
             throw new RuntimeException("Invalid email or password");
         }
 
+        String token = jwtService.generateToken(user.getEmail(), user.getRole().name());
+
         return new AuthResponse(
                 "Login successful",
                 user.getUsername(),
                 user.getEmail(),
-                user.getRole().name()
+                user.getRole().name(),
+                token
         );
     }
 }
