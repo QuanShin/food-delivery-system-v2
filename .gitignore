@@ -1,0 +1,55 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Env files
+.env
+.env.*
+
+# Java
+target/
+*.class
+*.jar
+*.war
+*.iml
+.gradle/
+build/
+
+# Node
+node_modules/
+dist/
+build/
+
+# Flutter / Dart
+.dart_tool/
+.packages
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.lock.hcl
+
+# Kubernetes / secrets
+secrets.yaml
+*.pem
+*.key
+
+# Mac / Linux temp
+*.swp
