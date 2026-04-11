@@ -6,6 +6,7 @@ import FoodCatalogPage from "../pages/FoodCatalogPage";
 import CheckoutPage from "../pages/CheckoutPage";
 import OrderTrackingPage from "../pages/OrderTrackingPage";
 import RiderDashboardPage from "../pages/RiderDashboardPage";
+import ProfilePage from "../pages/ProfilePage";
 
 function AppRoutes() {
   return (
@@ -17,6 +18,7 @@ function AppRoutes() {
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/tracking" element={<OrderTrackingPage />} />
       <Route path="/rider" element={<RiderDashboardPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
     </Routes>
   );
 }
