@@ -6,7 +6,7 @@ import "./styles/app.css";
 function App() {
   return (
     <BrowserRouter>
-      <div>
+      <div className="app-container">
         <h1>Food Ordering and Delivery System</h1>
         <AppNavbar />
         <AppRoutes />
