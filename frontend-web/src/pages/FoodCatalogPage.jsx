@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createMenuItem, getAllMenuItems } from "../api/menuApi";
+import { addToCart } from "../utils/cartUtils";
 
 function FoodCatalogPage() {
   const [menuItems, setMenuItems] = useState([]);
@@ -12,6 +13,11 @@ function FoodCatalogPage() {
     available: true,
   });
 
+  const handleAddToCart = (item) => {
+  addToCart(item);
+  setMessage(`${item.name} added to cart.`);
+  };
+  
   const loadMenuItems = async () => {
     try {
       const data = await getAllMenuItems();
@@ -131,7 +137,16 @@ function FoodCatalogPage() {
                 {item.description}
                 <br />
                 Status: {item.available ? "Available" : "Unavailable"}
-              </li>
+                <br />
+                <button
+                    type="button"
+                    onClick={() => handleAddToCart(item)}
+                    disabled={!item.available}
+                    style={{ marginTop: "8px" }}
+                >
+                    Add to Cart
+                </button>
+               </li>
             ))}
           </ul>
         )}
