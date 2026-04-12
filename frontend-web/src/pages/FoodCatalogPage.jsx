@@ -1,30 +1,59 @@
-import { useEffect, useState } from "react";
-import { createMenuItem, getAllMenuItems } from "../api/menuApi";
+import { useEffect, useMemo, useState } from "react";
+import { getAllMenuItems } from "../api/menuApi";
 import { addToCart } from "../utils/cartUtils";
+import { menuSeed } from "../data/menuSeed";
 
 function FoodCatalogPage() {
   const [menuItems, setMenuItems] = useState([]);
   const [message, setMessage] = useState("");
-  const [formData, setFormData] = useState({
-    name: "",
-    category: "",
-    price: "",
-    description: "",
-    available: true,
-  });
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const handleAddToCart = (item) => {
-  addToCart(item);
-  setMessage(`${item.name} added to cart.`);
-  };
-  
   const loadMenuItems = async () => {
     try {
       const data = await getAllMenuItems();
-      setMenuItems(data);
+      const backendItems = Array.isArray(data) ? data : [];
+
+      const mergedMap = new Map();
+
+      menuSeed.forEach((seedItem) => {
+        mergedMap.set(seedItem.name.toLowerCase(), seedItem);
+      });
+
+      backendItems.forEach((item) => {
+        const matched = menuSeed.find(
+          (seed) => seed.name.toLowerCase() === item.name.toLowerCase()
+        );
+
+        const enrichedItem = matched
+          ? { ...matched, ...item }
+          : {
+              ...item,
+              image: "/images/dishes/american.jpg",
+              rating: 4.5,
+              prepTime: "15-20 min",
+              popular: false,
+              description: item.description || "Freshly prepared menu item.",
+            };
+
+        mergedMap.set(item.name.toLowerCase(), enrichedItem);
+      });
+
+      const mergedItems = Array.from(mergedMap.values()).filter(
+        (item) =>
+          item.name &&
+          item.name.trim() !== "" &&
+          item.category &&
+          item.category.trim() !== "" &&
+          item.description &&
+          item.description.trim() !== ""
+      );
+
+      setMenuItems(mergedItems);
     } catch (error) {
       console.error("Menu load error:", error);
-      setMessage("Failed to load menu items.");
+      setMenuItems(menuSeed);
+      setMessage("Loaded demo catalog from seed data.");
     }
   };
 
@@ -32,125 +61,119 @@ function FoodCatalogPage() {
     loadMenuItems();
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
+  const handleAddToCart = (item) => {
+    addToCart(item);
+    setMessage(`${item.name} added to cart.`);
+  };
+
+  const categories = useMemo(() => {
+    const unique = [...new Set(menuItems.map((item) => item.category))];
+    return ["All", ...unique];
+  }, [menuItems]);
+
+  const filteredItems = useMemo(() => {
+    return menuItems.filter((item) => {
+      const matchesCategory =
+        selectedCategory === "All" || item.category === selectedCategory;
+
+      const matchesSearch =
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+      return matchesCategory && matchesSearch;
     });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMessage("");
-
-    try {
-      await createMenuItem({
-        ...formData,
-        price: parseFloat(formData.price),
-      });
-
-      setMessage("Menu item created successfully.");
-      setFormData({
-        name: "",
-        category: "",
-        price: "",
-        description: "",
-        available: true,
-      });
-
-      loadMenuItems();
-    } catch (error) {
-      console.error("Create menu item error:", error);
-      setMessage(
-        error.response?.data?.error || "Failed to create menu item."
-      );
-    }
-  };
+  }, [menuItems, selectedCategory, searchTerm]);
 
   return (
     <div>
-      <h2>Food Catalog</h2>
+      <h2 className="page-title">Food Catalog</h2>
 
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: "grid", gap: "12px", maxWidth: "500px", marginBottom: "24px" }}
-      >
+      <div className="catalog-toolbar">
         <input
           type="text"
-          name="name"
-          placeholder="Food name"
-          value={formData.name}
-          onChange={handleChange}
+          placeholder="Search dishes..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="catalog-search"
         />
-
-        <input
-          type="text"
-          name="category"
-          placeholder="Category"
-          value={formData.category}
-          onChange={handleChange}
-        />
-
-        <input
-          type="number"
-          step="0.01"
-          name="price"
-          placeholder="Price"
-          value={formData.price}
-          onChange={handleChange}
-        />
-
-        <input
-          type="text"
-          name="description"
-          placeholder="Description"
-          value={formData.description}
-          onChange={handleChange}
-        />
-
-        <label>
-          <input
-            type="checkbox"
-            name="available"
-            checked={formData.available}
-            onChange={handleChange}
-          />
-          Available
-        </label>
-
-        <button type="submit">Add Menu Item</button>
-      </form>
-
-      {message && <p>{message}</p>}
-
-      <div>
-        <h3>Available Menu Items</h3>
-        {menuItems.length === 0 ? (
-          <p>No menu items found.</p>
-        ) : (
-          <ul>
-            {menuItems.map((item) => (
-              <li key={item.id} style={{ marginBottom: "12px" }}>
-                <strong>{item.name}</strong> - {item.category} - ${item.price}
-                <br />
-                {item.description}
-                <br />
-                Status: {item.available ? "Available" : "Unavailable"}
-                <br />
-                <button
-                    type="button"
-                    onClick={() => handleAddToCart(item)}
-                    disabled={!item.available}
-                    style={{ marginTop: "8px" }}
-                >
-                    Add to Cart
-                </button>
-               </li>
-            ))}
-          </ul>
-        )}
       </div>
+
+      <div className="category-row">
+        {categories.map((category) => (
+          <button
+            key={category}
+            type="button"
+            className={`category-chip ${
+              selectedCategory === category ? "category-chip-active" : ""
+            }`}
+            onClick={() => setSelectedCategory(category)}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+
+      {message && <p className="message">{message}</p>}
+
+      <h3 className="section-title">Available Dishes</h3>
+
+      {filteredItems.length === 0 ? (
+        <p>No menu items found.</p>
+      ) : (
+        <div className="dish-list">
+          {filteredItems.map((item) => (
+            <div className="dish-row" key={item.id}>
+              <img
+                src={item.image || "/images/dishes/american.jpg"}
+                alt={item.name}
+                onError={(e) => {
+                  e.currentTarget.src = "/images/dishes/american.jpg";
+                }}
+                className="dish-image"
+              />
+
+              <div className="dish-main">
+                <div className="dish-topline">
+                  <div>
+                    <div className="dish-name">{item.name}</div>
+                    <div className="dish-meta">
+                      <span className="dish-category">{item.category}</span>
+                      <span>•</span>
+                      <span>⭐ {item.rating}</span>
+                      <span>•</span>
+                      <span>{item.prepTime}</span>
+                    </div>
+                  </div>
+
+                  {item.popular && <span className="dish-popular">Popular</span>}
+                </div>
+
+                <p className="dish-description">{item.description}</p>
+              </div>
+
+              <div className="dish-side">
+                <div className="dish-price">${item.price}</div>
+
+                <div
+                  className={`status-badge ${
+                    item.available ? "status-available" : "status-unavailable"
+                  }`}
+                >
+                  {item.available ? "Available" : "Unavailable"}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleAddToCart(item)}
+                  disabled={!item.available}
+                >
+                  Add to Cart
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

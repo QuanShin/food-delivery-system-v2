@@ -38,9 +38,7 @@ function OrderTrackingPage() {
       loadData();
     } catch (error) {
       console.error("Create delivery error:", error);
-      setMessage(
-        error.response?.data?.error || "Failed to create delivery."
-      );
+      setMessage(error.response?.data?.error || "Failed to create delivery.");
     }
   };
 
@@ -51,9 +49,7 @@ function OrderTrackingPage() {
       loadData();
     } catch (error) {
       console.error("Update delivery status error:", error);
-      setMessage(
-        error.response?.data?.error || "Failed to update delivery status."
-      );
+      setMessage(error.response?.data?.error || "Failed to update delivery status.");
     }
   };
 
@@ -61,45 +57,50 @@ function OrderTrackingPage() {
     return deliveries.find((delivery) => delivery.orderId === orderId);
   };
 
+  const getTimelineClass = (currentStatus, step) => {
+    const order = ["ASSIGNED", "PICKED_UP", "ON_THE_WAY", "DELIVERED"];
+    return order.indexOf(currentStatus) >= order.indexOf(step)
+      ? "timeline-step timeline-active"
+      : "timeline-step";
+  };
+
   return (
     <div>
-      <h2>Track Order</h2>
+      <h2 className="page-title">Track Order</h2>
 
-      {message && <p>{message}</p>}
+      {message && <p className="message">{message}</p>}
 
       {orders.length === 0 ? (
         <p>No orders found.</p>
       ) : (
-        <ul>
+        <div className="tracking-list">
           {orders.map((order) => {
             const delivery = getDeliveryForOrder(order.id);
 
             return (
-              <li key={order.id} style={{ marginBottom: "20px" }}>
-                <strong>Order #{order.id}</strong>
-                <br />
-                Customer: {order.customerEmail}
-                <br />
-                Item: {order.menuItemName}
-                <br />
-                Quantity: {order.quantity}
-                <br />
-                Total: ${order.totalPrice}
-                <br />
-                Order Status: {order.status}
-                <br />
+              <div className="tracking-item" key={order.id}>
+                <h3>Order #{order.id}</h3>
+                <p><strong>Customer:</strong> {order.customerEmail}</p>
+                <p><strong>Item:</strong> {order.menuItemName}</p>
+                <p><strong>Quantity:</strong> {order.quantity}</p>
+                <p><strong>Total:</strong> ${order.totalPrice}</p>
+                <p><strong>Order Status:</strong> {order.status}</p>
 
                 {delivery ? (
-                  <div style={{ marginTop: "10px" }}>
-                    <strong>Delivery Info</strong>
-                    <br />
-                    Rider: {delivery.riderName}
-                    <br />
-                    Address: {delivery.deliveryAddress}
-                    <br />
-                    Delivery Status: {delivery.status}
-                    <br />
-                    <div style={{ marginTop: "8px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <div>
+                    <h4>Delivery Info</h4>
+                    <p><strong>Rider:</strong> {delivery.riderName}</p>
+                    <p><strong>Address:</strong> {delivery.deliveryAddress}</p>
+                    <p><strong>Delivery Status:</strong> {delivery.status}</p>
+
+                    <div className="delivery-timeline">
+                      <span className={getTimelineClass(delivery.status, "ASSIGNED")}>Assigned</span>
+                      <span className={getTimelineClass(delivery.status, "PICKED_UP")}>Picked Up</span>
+                      <span className={getTimelineClass(delivery.status, "ON_THE_WAY")}>On The Way</span>
+                      <span className={getTimelineClass(delivery.status, "DELIVERED")}>Delivered</span>
+                    </div>
+
+                    <div style={{ marginTop: "12px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
                       <button onClick={() => handleUpdateStatus(delivery.id, "PICKED_UP")}>
                         Picked Up
                       </button>
@@ -112,16 +113,14 @@ function OrderTrackingPage() {
                     </div>
                   </div>
                 ) : (
-                  <div style={{ marginTop: "10px" }}>
-                    <button onClick={() => handleCreateDelivery(order)}>
-                      Create Delivery
-                    </button>
-                  </div>
+                  <button onClick={() => handleCreateDelivery(order)}>
+                    Create Delivery
+                  </button>
                 )}
-              </li>
+              </div>
             );
           })}
-        </ul>
+        </div>
       )}
     </div>
   );

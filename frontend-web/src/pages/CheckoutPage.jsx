@@ -63,69 +63,67 @@ function CheckoutPage() {
       setCustomerEmail("");
     } catch (error) {
       console.error("Checkout error:", error);
-      setMessage(
-        error.response?.data?.error || "Failed to place order."
-      );
+      setMessage(error.response?.data?.error || "Failed to place order.");
     }
   };
 
   return (
     <div>
-      <h2>Checkout</h2>
+      <h2 className="page-title">Checkout</h2>
 
       {cartItems.length === 0 ? (
         <p>Your cart is empty.</p>
       ) : (
-        <div>
-          <h3>Cart Items</h3>
-          <ul>
+        <>
+          <div className="cart-list">
             {cartItems.map((item) => (
-              <li key={item.id} style={{ marginBottom: "12px" }}>
-                <strong>{item.name}</strong> - ${item.price}
-                <br />
-                Quantity:
-                <input
-                  type="number"
-                  min="1"
-                  value={item.quantity}
-                  onChange={(e) =>
-                    handleQuantityChange(item.id, e.target.value)
-                  }
-                  style={{ marginLeft: "8px", width: "60px" }}
-                />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveItem(item.id)}
-                  style={{ marginLeft: "12px" }}
-                >
-                  Remove
-                </button>
-              </li>
+              <div className="cart-item" key={item.id}>
+                <h3>{item.name}</h3>
+                <p>Unit Price: ${item.price}</p>
+
+                <div>
+                  Quantity:
+                  <input
+                    type="number"
+                    min="1"
+                    value={item.quantity}
+                    onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                    style={{ marginLeft: "8px", width: "70px" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveItem(item.id)}
+                    style={{ marginLeft: "12px" }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
 
-          <p><strong>Total:</strong> ${getCartTotal().toFixed(2)}</p>
+          <div className="summary-box">
+            <h3>Order Summary</h3>
+            <p><strong>Total:</strong> ${getCartTotal().toFixed(2)}</p>
 
-          <form
-            onSubmit={handleCheckout}
-            style={{ display: "grid", gap: "12px", maxWidth: "400px" }}
-          >
-            <input
-              type="email"
-              placeholder="Customer email"
-              value={customerEmail}
-              onChange={(e) => setCustomerEmail(e.target.value)}
-            />
+            <form className="form-grid" onSubmit={handleCheckout}>
+              <input
+                type="email"
+                placeholder="Customer email"
+                value={customerEmail}
+                onChange={(e) => setCustomerEmail(e.target.value)}
+              />
 
-            <button type="submit">Place Order</button>
-          </form>
-        </div>
+              <button type="submit">Place Order</button>
+            </form>
+          </div>
+        </>
       )}
 
-      {message && <p>{message}</p>}
+      {message && <p className="message">{message}</p>}
 
       {createdOrders.length > 0 && (
-        <div>
+        <div className="summary-box sticky-summary">
           <h3>Created Orders</h3>
           <ul>
             {createdOrders.map((order) => (
