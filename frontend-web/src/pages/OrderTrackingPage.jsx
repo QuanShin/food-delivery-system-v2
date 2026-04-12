@@ -81,10 +81,17 @@ function OrderTrackingPage() {
               <div className="tracking-item" key={order.id}>
                 <h3>Order #{order.id}</h3>
                 <p><strong>Customer:</strong> {order.customerEmail}</p>
-                <p><strong>Item:</strong> {order.menuItemName}</p>
-                <p><strong>Quantity:</strong> {order.quantity}</p>
                 <p><strong>Total:</strong> ${order.totalPrice}</p>
                 <p><strong>Order Status:</strong> {order.status}</p>
+
+                <h4>Items</h4>
+                <ul>
+                  {order.items.map((item, index) => (
+                    <li key={index}>
+                      {item.menuItemName} — Qty: {item.quantity} — ${item.lineTotal}
+                    </li>
+                  ))}
+                </ul>
 
                 {delivery ? (
                   <div>

@@ -12,7 +12,7 @@ function CheckoutPage() {
   const [customerEmail, setCustomerEmail] = useState("");
   const [cartItems, setCartItems] = useState([]);
   const [message, setMessage] = useState("");
-  const [createdOrders, setCreatedOrders] = useState([]);
+  const [createdOrder, setCreatedOrder] = useState(null);
 
   const loadCart = () => {
     setCartItems(getCartItems());
@@ -35,7 +35,7 @@ function CheckoutPage() {
   const handleCheckout = async (e) => {
     e.preventDefault();
     setMessage("");
-    setCreatedOrders([]);
+    setCreatedOrder(null);
 
     if (cartItems.length === 0) {
       setMessage("Cart is empty.");
@@ -43,20 +43,18 @@ function CheckoutPage() {
     }
 
     try {
-      const results = [];
-
-      for (const item of cartItems) {
-        const order = await createOrder({
-          customerEmail,
+      const payload = {
+        customerEmail,
+        items: cartItems.map((item) => ({
           menuItemName: item.name,
           quantity: item.quantity,
           unitPrice: item.price,
-        });
+        })),
+      };
 
-        results.push(order);
-      }
+      const order = await createOrder(payload);
 
-      setCreatedOrders(results);
+      setCreatedOrder(order);
       setMessage("Order placed successfully.");
       clearCart();
       loadCart();
@@ -102,7 +100,7 @@ function CheckoutPage() {
             ))}
           </div>
 
-          <div className="summary-box">
+          <div className="summary-box sticky-summary">
             <h3>Order Summary</h3>
             <p><strong>Total:</strong> ${getCartTotal().toFixed(2)}</p>
 
@@ -122,13 +120,19 @@ function CheckoutPage() {
 
       {message && <p className="message">{message}</p>}
 
-      {createdOrders.length > 0 && (
-        <div className="summary-box sticky-summary">
-          <h3>Created Orders</h3>
+      {createdOrder && (
+        <div className="summary-box">
+          <h3>Created Order</h3>
+          <p><strong>Order ID:</strong> {createdOrder.id}</p>
+          <p><strong>Customer:</strong> {createdOrder.customerEmail}</p>
+          <p><strong>Total:</strong> ${createdOrder.totalPrice}</p>
+          <p><strong>Status:</strong> {createdOrder.status}</p>
+
+          <h4>Items</h4>
           <ul>
-            {createdOrders.map((order) => (
-              <li key={order.id}>
-                Order #{order.id} - {order.menuItemName} - {order.status}
+            {createdOrder.items.map((item, index) => (
+              <li key={index}>
+                {item.menuItemName} — Qty: {item.quantity} — ${item.lineTotal}
               </li>
             ))}
           </ul>

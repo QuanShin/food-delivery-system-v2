@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getAllMenuItems } from "../api/menuApi";
 import { addToCart } from "../utils/cartUtils";
-import { menuSeed } from "../data/menuSeed";
 
 function FoodCatalogPage() {
   const [menuItems, setMenuItems] = useState([]);
@@ -14,46 +13,57 @@ function FoodCatalogPage() {
       const data = await getAllMenuItems();
       const backendItems = Array.isArray(data) ? data : [];
 
-      const mergedMap = new Map();
+      const enriched = backendItems
+        .filter(
+          (item) =>
+            item.name &&
+            item.category &&
+            item.description
+        )
+        .map((item) => {
+          const lowerCategory = (item.category || "").toLowerCase();
 
-      menuSeed.forEach((seedItem) => {
-        mergedMap.set(seedItem.name.toLowerCase(), seedItem);
-      });
+          let image = "/images/dishes/american.jpg";
+          let rating = 4.5;
+          let prepTime = "15-20 min";
+          let popular = false;
 
-      backendItems.forEach((item) => {
-        const matched = menuSeed.find(
-          (seed) => seed.name.toLowerCase() === item.name.toLowerCase()
-        );
+          if (lowerCategory === "asian") {
+            image = "/images/dishes/asian.jpg";
+            rating = 4.7;
+            prepTime = "20-25 min";
+          } else if (lowerCategory === "mexican") {
+            image = "/images/dishes/mexican.jpg";
+            rating = 4.6;
+            prepTime = "18-22 min";
+          } else if (lowerCategory === "italian") {
+            image = "/images/dishes/italian.jpg";
+            rating = 4.7;
+            prepTime = "22-28 min";
+          }
 
-        const enrichedItem = matched
-          ? { ...matched, ...item }
-          : {
-              ...item,
-              image: "/images/dishes/american.jpg",
-              rating: 4.5,
-              prepTime: "15-20 min",
-              popular: false,
-              description: item.description || "Freshly prepared menu item.",
-            };
+          if (
+            item.name === "Cheeseburger" ||
+            item.name === "Pork Ramen" ||
+            item.name === "Chicken Tacos" ||
+            item.name === "Spaghetti & Meatballs"
+          ) {
+            popular = true;
+          }
 
-        mergedMap.set(item.name.toLowerCase(), enrichedItem);
-      });
+          return {
+            ...item,
+            image,
+            rating,
+            prepTime,
+            popular,
+          };
+        });
 
-      const mergedItems = Array.from(mergedMap.values()).filter(
-        (item) =>
-          item.name &&
-          item.name.trim() !== "" &&
-          item.category &&
-          item.category.trim() !== "" &&
-          item.description &&
-          item.description.trim() !== ""
-      );
-
-      setMenuItems(mergedItems);
+      setMenuItems(enriched);
     } catch (error) {
       console.error("Menu load error:", error);
-      setMenuItems(menuSeed);
-      setMessage("Loaded demo catalog from seed data.");
+      setMessage("Failed to load menu items.");
     }
   };
 
@@ -124,7 +134,7 @@ function FoodCatalogPage() {
           {filteredItems.map((item) => (
             <div className="dish-row" key={item.id}>
               <img
-                src={item.image || "/images/dishes/american.jpg"}
+                src={item.image}
                 alt={item.name}
                 onError={(e) => {
                   e.currentTarget.src = "/images/dishes/american.jpg";
