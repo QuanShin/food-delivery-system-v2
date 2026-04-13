@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: menu-service
+  namespace: {{ include "food-delivery.namespace" . }}
+spec:
+  replicas: {{ .Values.menu.replicas }}
+  selector:
+    matchLabels:
+      app: menu-service
+  template:
+    metadata:
+      labels:
+        app: menu-service
+    spec:
+      containers:
+        - name: menu-service
+          image: {{ .Values.menu.image }}
+          ports:
+            - containerPort: {{ .Values.menu.port }}
+          env:
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: food-delivery-secret
+                  key: DB_URL
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: food-delivery-secret
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: food-delivery-secret
+                  key: DB_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: menu-service
+  namespace: {{ include "food-delivery.namespace" . }}
+spec:
+  selector:
+    app: menu-service
+  ports:
+    - port: {{ .Values.menu.port }}
+      targetPort: {{ .Values.menu.port }}
+  type: ClusterIP

@@ -1,9 +1,14 @@
 import axios from "axios";
 
-const DELIVERY_BASE_URL = "http://localhost:8083/deliveries";
+const DELIVERY_BASE_URL = "/deliveries";
 
 export const getAllDeliveries = async () => {
   const response = await axios.get(DELIVERY_BASE_URL);
+  return response.data;
+};
+
+export const getDeliveryById = async (id) => {
+  const response = await axios.get(`${DELIVERY_BASE_URL}/${id}`);
   return response.data;
 };
 

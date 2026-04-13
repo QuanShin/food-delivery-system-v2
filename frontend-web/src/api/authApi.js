@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const AUTH_BASE_URL = "http://localhost:8080/auth";
+const AUTH_BASE_URL = "/auth";
 
 export const registerUser = async (payload) => {
   const response = await axios.post(`${AUTH_BASE_URL}/register`, payload);
@@ -13,10 +13,19 @@ export const loginUser = async (payload) => {
 };
 
 export const getCurrentUser = async (token) => {
-  const response = await axios.get(`${AUTH_BASE_URL}/me`, {
+  const response = await axios.get(`${AUTH_BASE_URL}/profile`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
+  return response.data;
+};
+
+export const getProfile = async (token) => {
+  return getCurrentUser(token);
+};
+
+export const getAuthHealth = async () => {
+  const response = await axios.get(`${AUTH_BASE_URL}/health`);
   return response.data;
 };

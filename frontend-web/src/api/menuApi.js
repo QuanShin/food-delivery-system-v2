@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const MENU_BASE_URL = "http://localhost:8081/menu";
+const MENU_BASE_URL = "/menu";
 
 export const getAllMenuItems = async () => {
   const response = await axios.get(MENU_BASE_URL);

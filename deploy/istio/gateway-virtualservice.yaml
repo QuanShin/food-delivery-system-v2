@@ -1,0 +1,79 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: food-delivery-gateway
+  namespace: food-delivery
+spec:
+  selector:
+    istio: ingress
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "*"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: food-delivery-virtualservice
+  namespace: food-delivery
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - food-delivery-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /api/auth
+      rewrite:
+        uri: /auth
+      route:
+        - destination:
+            host: auth-service.food-delivery.svc.cluster.local
+            port:
+              number: 8080
+
+    - match:
+        - uri:
+            prefix: /api/menu
+      rewrite:
+        uri: /menu
+      route:
+        - destination:
+            host: menu-service.food-delivery.svc.cluster.local
+            port:
+              number: 8081
+
+    - match:
+        - uri:
+            prefix: /api/orders
+      rewrite:
+        uri: /orders
+      route:
+        - destination:
+            host: order-service.food-delivery.svc.cluster.local
+            port:
+              number: 8082
+
+    - match:
+        - uri:
+            prefix: /api/deliveries
+      rewrite:
+        uri: /deliveries
+      route:
+        - destination:
+            host: delivery-service.food-delivery.svc.cluster.local
+            port:
+              number: 8083
+
+    - match:
+        - uri:
+            prefix: /
+      route:
+        - destination:
+            host: frontend-web.food-delivery.svc.cluster.local
+            port:
+              number: 80

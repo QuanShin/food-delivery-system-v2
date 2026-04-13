@@ -1,0 +1,43 @@
+namespace: food-delivery
+
+aws:
+  accountId: "202077713283"
+  region: "us-east-1"
+  publicSubnets:
+    - "subnet-05fbaa6aed83b9cc1"
+    - "subnet-091594aeacec07301"
+
+secrets:
+  dbUrl: "jdbc:mysql://food-delivery-dev-mysql.ck524guskpa9.us-east-1.rds.amazonaws.com:3306/foodauthdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+  dbUsername: "admin"
+  dbPassword: "Admin12345!"
+  jwtSecret: "foodDeliverySystemSuperSecretKeyForJwtToken123456"
+
+auth:
+  image: "202077713283.dkr.ecr.us-east-1.amazonaws.com/food-auth-service:latest"
+  replicas: 1
+  port: 8080
+
+menu:
+  image: "202077713283.dkr.ecr.us-east-1.amazonaws.com/food-menu-service:latest"
+  replicas: 1
+  port: 8081
+
+order:
+  image: "202077713283.dkr.ecr.us-east-1.amazonaws.com/food-order-service:latest"
+  replicas: 1
+  port: 8082
+
+delivery:
+  image: "202077713283.dkr.ecr.us-east-1.amazonaws.com/food-delivery-service:latest"
+  replicas: 1
+  port: 8083
+
+frontend:
+  image: "202077713283.dkr.ecr.us-east-1.amazonaws.com/food-frontend-web:latest"
+  replicas: 1
+  port: 80
+
+ingress:
+  enabled: true
+  host: ""
