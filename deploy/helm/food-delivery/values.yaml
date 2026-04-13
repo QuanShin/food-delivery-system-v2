@@ -40,4 +40,5 @@ frontend:
 
 ingress:
   enabled: true
-  host: ""
+  host: "foodorderapp.io.vn"
+  certificateArn: "arn:aws:acm:us-east-1:202077713283:certificate/c8aa576c-31e9-4f51-8d5c-93d9d6c780d9"

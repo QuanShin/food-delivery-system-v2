@@ -1,0 +1,84 @@
+name: Deploy to EKS
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  EKS_CLUSTER_NAME: food-delivery-dev-eks
+  ECR_REGISTRY: 202077713283.dkr.ecr.us-east-1.amazonaws.com
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials from GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::202077713283:role/GitHubActionsFoodDeliveryDeployRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build frontend locally
+        run: |
+          cd frontend-web
+          npm ci
+          npm run build
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+
+      - name: Build and push auth-service
+        run: |
+          docker build -t $ECR_REGISTRY/food-auth-service:$IMAGE_TAG ./services/auth-service
+          docker push $ECR_REGISTRY/food-auth-service:$IMAGE_TAG
+
+      - name: Build and push menu-service
+        run: |
+          docker build -t $ECR_REGISTRY/food-menu-service:$IMAGE_TAG ./services/menu-service
+          docker push $ECR_REGISTRY/food-menu-service:$IMAGE_TAG
+
+      - name: Build and push order-service
+        run: |
+          docker build -t $ECR_REGISTRY/food-order-service:$IMAGE_TAG ./services/order-service
+          docker push $ECR_REGISTRY/food-order-service:$IMAGE_TAG
+
+      - name: Build and push delivery-service
+        run: |
+          docker build -t $ECR_REGISTRY/food-delivery-service:$IMAGE_TAG ./services/delivery-service
+          docker push $ECR_REGISTRY/food-delivery-service:$IMAGE_TAG
+
+      - name: Build and push frontend-web
+        run: |
+          docker build -t $ECR_REGISTRY/food-frontend-web:$IMAGE_TAG ./frontend-web
+          docker push $ECR_REGISTRY/food-frontend-web:$IMAGE_TAG
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --region "$AWS_REGION" --name "$EKS_CLUSTER_NAME"
+
+      - name: Helm deploy
+        run: |
+          helm upgrade --install food-delivery ./deploy/helm/food-delivery \
+            -n food-delivery \
+            --set auth.image=$ECR_REGISTRY/food-auth-service:$IMAGE_TAG \
+            --set menu.image=$ECR_REGISTRY/food-menu-service:$IMAGE_TAG \
+            --set order.image=$ECR_REGISTRY/food-order-service:$IMAGE_TAG \
+            --set delivery.image=$ECR_REGISTRY/food-delivery-service:$IMAGE_TAG \
+            --set frontend.image=$ECR_REGISTRY/food-frontend-web:$IMAGE_TAG
