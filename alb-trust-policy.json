@@ -1,0 +1,18 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::202077713283:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/35BDFBBF94637433C7878D3A2A4B6C73"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "<OIDC_HOST_PATH>:aud": "sts.amazonaws.com",
+          "<OIDC_HOST_PATH>:sub": "system:serviceaccount:kube-system:aws-load-balancer-controller"
+        }
+      }
+    }
+  ]
+}
