@@ -1,14 +1,13 @@
 package com.fooddelivery.order.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record OrderResponse(
         Long id,
         String customerEmail,
-        String menuItemName,
-        Integer quantity,
-        BigDecimal unitPrice,
         BigDecimal totalPrice,
-        String status
+        String status,
+        List<OrderItemResponse> items
 ) {
 }

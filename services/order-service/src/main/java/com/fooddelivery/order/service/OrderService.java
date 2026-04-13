@@ -1,8 +1,8 @@
 package com.fooddelivery.order.service;
 
-import com.fooddelivery.order.dto.OrderRequest;
-import com.fooddelivery.order.dto.OrderResponse;
+import com.fooddelivery.order.dto.*;
 import com.fooddelivery.order.entity.FoodOrder;
+import com.fooddelivery.order.entity.OrderItem;
 import com.fooddelivery.order.entity.OrderStatus;
 import com.fooddelivery.order.repository.FoodOrderRepository;
 import org.springframework.stereotype.Service;
@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OrderService {
@@ -20,59 +21,69 @@ public class OrderService {
         this.foodOrderRepository = foodOrderRepository;
     }
 
+    @Transactional
     public OrderResponse createOrder(OrderRequest request) {
-        BigDecimal totalPrice = request.unitPrice().multiply(BigDecimal.valueOf(request.quantity()));
+        BigDecimal totalPrice = request.items().stream()
+                .map(item -> item.unitPrice().multiply(BigDecimal.valueOf(item.quantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         FoodOrder order = new FoodOrder(
                 request.customerEmail(),
-                request.menuItemName(),
-                request.quantity(),
-                request.unitPrice(),
                 totalPrice,
                 OrderStatus.PENDING,
                 LocalDateTime.now()
         );
 
+        for (OrderItemRequest itemRequest : request.items()) {
+            BigDecimal lineTotal = itemRequest.unitPrice().multiply(BigDecimal.valueOf(itemRequest.quantity()));
+
+            OrderItem item = new OrderItem(
+                    itemRequest.menuItemName(),
+                    itemRequest.quantity(),
+                    itemRequest.unitPrice(),
+                    lineTotal
+            );
+
+            order.addItem(item);
+        }
+
         FoodOrder saved = foodOrderRepository.save(order);
-
-        return new OrderResponse(
-                saved.getId(),
-                saved.getCustomerEmail(),
-                saved.getMenuItemName(),
-                saved.getQuantity(),
-                saved.getUnitPrice(),
-                saved.getTotalPrice(),
-                saved.getStatus().name()
-        );
+        return mapToResponse(saved);
     }
-
+    
+    @Transactional(readOnly = true)
     public List<OrderResponse> getAllOrders() {
         return foodOrderRepository.findAll()
                 .stream()
-                .map(order -> new OrderResponse(
-                        order.getId(),
-                        order.getCustomerEmail(),
-                        order.getMenuItemName(),
-                        order.getQuantity(),
-                        order.getUnitPrice(),
-                        order.getTotalPrice(),
-                        order.getStatus().name()
-                ))
+                .map(this::mapToResponse)
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public OrderResponse getOrderById(Long id) {
         FoodOrder order = foodOrderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
+        return mapToResponse(order);
+    }
+
+    private OrderResponse mapToResponse(FoodOrder order) {
+        List<OrderItemResponse> items = order.getItems()
+                .stream()
+                .map(item -> new OrderItemResponse(
+                        item.getMenuItemName(),
+                        item.getQuantity(),
+                        item.getUnitPrice(),
+                        item.getLineTotal()
+                ))
+                .toList();
+
         return new OrderResponse(
                 order.getId(),
                 order.getCustomerEmail(),
-                order.getMenuItemName(),
-                order.getQuantity(),
-                order.getUnitPrice(),
                 order.getTotalPrice(),
-                order.getStatus().name()
+                order.getStatus().name(),
+                items
         );
     }
 }

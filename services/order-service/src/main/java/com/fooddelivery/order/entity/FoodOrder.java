@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "food_orders")
@@ -16,15 +18,6 @@ public class FoodOrder {
     @Column(nullable = false)
     private String customerEmail;
 
-    @Column(nullable = false)
-    private String menuItemName;
-
-    @Column(nullable = false)
-    private Integer quantity;
-
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal unitPrice;
-
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal totalPrice;
 
@@ -35,23 +28,22 @@ public class FoodOrder {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    @OneToMany(mappedBy = "foodOrder", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> items = new ArrayList<>();
+
     public FoodOrder() {
     }
 
-    public FoodOrder(String customerEmail,
-                     String menuItemName,
-                     Integer quantity,
-                     BigDecimal unitPrice,
-                     BigDecimal totalPrice,
-                     OrderStatus status,
-                     LocalDateTime createdAt) {
+    public FoodOrder(String customerEmail, BigDecimal totalPrice, OrderStatus status, LocalDateTime createdAt) {
         this.customerEmail = customerEmail;
-        this.menuItemName = menuItemName;
-        this.quantity = quantity;
-        this.unitPrice = unitPrice;
         this.totalPrice = totalPrice;
         this.status = status;
         this.createdAt = createdAt;
+    }
+
+    public void addItem(OrderItem item) {
+        items.add(item);
+        item.setFoodOrder(this);
     }
 
     public Long getId() {
@@ -60,18 +52,6 @@ public class FoodOrder {
 
     public String getCustomerEmail() {
         return customerEmail;
-    }
-
-    public String getMenuItemName() {
-        return menuItemName;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
     }
 
     public BigDecimal getTotalPrice() {
@@ -86,20 +66,12 @@ public class FoodOrder {
         return createdAt;
     }
 
+    public List<OrderItem> getItems() {
+        return items;
+    }
+
     public void setCustomerEmail(String customerEmail) {
         this.customerEmail = customerEmail;
-    }
-
-    public void setMenuItemName(String menuItemName) {
-        this.menuItemName = menuItemName;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-    }
-
-    public void setUnitPrice(BigDecimal unitPrice) {
-        this.unitPrice = unitPrice;
     }
 
     public void setTotalPrice(BigDecimal totalPrice) {
@@ -112,5 +84,9 @@ public class FoodOrder {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public void setItems(List<OrderItem> items) {
+        this.items = items;
     }
 }
