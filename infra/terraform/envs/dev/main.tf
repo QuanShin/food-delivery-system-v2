@@ -27,6 +27,18 @@ module "eks" {
   max_size            = var.max_size
 }
 
+module "rds" {
+  source = "../../modules/rds"
+
+  project_name       = var.project_name
+  environment        = var.environment
+  vpc_id             = module.network.vpc_id
+  private_subnet_ids = module.network.private_subnet_ids
+  db_name            = var.db_name
+  db_username        = var.db_username
+  db_password        = var.db_password
+}
+
 output "name_prefix" {
   value = local.name_prefix
 }
@@ -53,4 +65,20 @@ output "eks_cluster_endpoint" {
 
 output "eks_cluster_version" {
   value = module.eks.cluster_version
+}
+
+output "rds_endpoint" {
+  value = module.rds.db_endpoint
+}
+
+output "rds_address" {
+  value = module.rds.db_address
+}
+
+output "rds_port" {
+  value = module.rds.db_port
+}
+
+output "rds_db_name" {
+  value = module.rds.db_name
 }
