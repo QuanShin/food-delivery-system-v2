@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/auth_response_model.dart';
 import '../models/profile_model.dart';
+import 'api_config.dart';
 
 class AuthService {
-  static const String baseUrl = 'http://10.0.2.2:8080/auth';
+  static const String baseUrl = ApiConfig.auth;
 
   static Future<AuthResponseModel> login({
     required String email,
