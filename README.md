@@ -13,8 +13,8 @@ A microservices-based food ordering and delivery system built with:
 - AWS EKS
 - Istio
 - Terraform
-- Prometheus / Grafana
-- Splunk
+- Grafana
+- Promtail
 
 ## Planned Microservices
 
@@ -50,4 +50,4 @@ A microservices-based food ordering and delivery system built with:
 
 ## Status
 
-Project initialization completed.
+Completed
