@@ -5,7 +5,7 @@ A full-stack food ordering and delivery platform built as a microservices projec
 The project models the main food delivery workflow: users register and log in with JWT authentication, browse menu items, create orders, and track deliveries handled by riders.
 
 ## Table of Contents
-
+- [Video Demonstration link](#video-demonstration)
 - [Project Overview](#project-overview)
 - [Main Features](#main-features)
 - [Architecture Summary](#architecture-summary)
@@ -23,6 +23,11 @@ The project models the main food delivery workflow: users register and log in wi
 - [Testing and Validation](#testing-and-validation)
 - [Known Notes](#known-notes)
 - [Future Improvements](#future-improvements)
+
+## Video Demonstration
+
+Please access through: 
+https://buveduvn0-my.sharepoint.com/personal/quan_tha_st_buv_edu_vn/_layouts/15/guestaccess.aspx?share=IQA0JwetBoT4Rp2dDDiZokCKAWHjhccEgV8n08GnnMm7MBk&e=XYiJu6
 
 ## Project Overview
 
